@@ -20,14 +20,27 @@ class Main:
 
         self.loss_function = torch.nn.CrossEntropyLoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=0.001)
+        self.training_data_words = self.model.dataset.vocabulary
 
         for i in range(self.model.num_classes):
             self.class_to_number[list(self.model.dataset.classes)[i]] = i
 
         self.train()
+        print("Printing Test Prediction")
+        print(self.test(["machine", "learning"]))
+
+    def test(self, sentence):
+        self.model.eval()
+        embedded_test_sentence = [self.model_embeddings.wv.get_vector(j) for j in sentence if j in self.training_data_words]
+        individual_word_predictions = []
+        for j in range(len(embedded_test_sentence)):
+            model_output = self.model(torch.tensor(embedded_test_sentence[j]))
+            individual_word_predictions.append(torch.argmax(model_output).item())
+        prediction = torch.mode(torch.tensor(individual_word_predictions)).values.item()
+        return prediction
 
     def train(self):
-        num_epochs = 50
+        num_epochs = 100
         for _ in tqdm(range(num_epochs)):
             self.model.train()
             num_iter = len(self.model.sentences)
@@ -96,7 +109,8 @@ class Dataset:
         common_query_starts = ["Tell me more about", "Want to learn about", "I want to explore"]
         common_response_starts = ["You should consider taking", "I would definitely recommend"]
 
-        for _ in tqdm(range(2000)):
+        num_epochs = 2000
+        for _ in tqdm(range(num_epochs)):
             query_start = random.choice(common_query_starts)
             response_start = random.choice(common_response_starts)
             random_subject = random.choice(self.data)
@@ -174,6 +188,8 @@ if __name__ == "__main__":
     # print(model.sentences)
     # print(sentence_data.classes)
     model = Model(sentence_data)
+    print(model.sentences)
     print(model.num_classes)
     main = Main(model)
+    print(main.class_to_number)
 
