@@ -1,4 +1,4 @@
-A Machine Learning Model to tell you want course at Cornell University would be a great fit for you based on your interests!
+A Machine Learning Model to tell you want course at Cornell University could be a good fit for you based on your interests!
 
 To run the model, clone this repository, and install the necessary packages, and run the following command:
 
