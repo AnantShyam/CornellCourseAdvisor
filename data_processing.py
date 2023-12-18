@@ -70,6 +70,3 @@ def process_data(subjects):
             print(e.reason)
 
     return tuple(result)
-
-
-process_data(["CS"])

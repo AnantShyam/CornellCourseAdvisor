@@ -10,7 +10,7 @@ import argparse
 
 class Main:
 
-    def __init__(self, init_model):
+    def __init__(self, init_model, query=[]):
         self.model = init_model
         self.model_embeddings = self.model.embeddings
         self.model_classes = self.model.dataset.classes
@@ -21,13 +21,20 @@ class Main:
         self.loss_function = torch.nn.CrossEntropyLoss()
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=0.001)
         self.training_data_words = self.model.dataset.vocabulary
+        self.query = query
 
         for i in range(self.model.num_classes):
             self.class_to_number[list(self.model.dataset.classes)[i]] = i
 
         self.train()
-        print("Printing Test Prediction")
-        print(self.test(["Python", "programming"]))
+
+        # print("Printing Test Prediction")
+        # print(self.test(["Python", "programming"]))
+
+        model_prediction = self.test(self.query)
+        course_number_predicted = [key for key in self.class_to_number if self.class_to_number[key] == model_prediction][0]
+        model_response_start = random.choice(self.model.dataset.common_response_starts)
+        print(f"{model_response_start} {course_number_predicted}")
 
     def test(self, sentence):
         self.model.eval()
@@ -40,7 +47,7 @@ class Main:
         return prediction
 
     def train(self):
-        num_epochs = 100
+        num_epochs = 50
         for _ in tqdm(range(num_epochs)):
             self.model.train()
             num_iter = len(self.model.sentences)
@@ -58,7 +65,7 @@ class Main:
 
                 prediction = torch.mode(torch.tensor(individual_word_predictions)).values.item()
                 # print(f"Prediction {prediction}")
-                true_label = self.class_to_number[self.correct_outputs[i]]
+                true_label = self.class_to_number[self.correct_outputs[i]] if self.correct_outputs[i] in self.class_to_number else -1
                 # print(f"True Label{true_label}")
                 loss = self.loss_function(torch.tensor([float(prediction)], requires_grad=True).float(), torch.tensor([float(true_label)], requires_grad=True).float())
 
@@ -74,10 +81,10 @@ class Model(torch.nn.Module):
         super().__init__()
         self.dataset = dataset
         self.sentences, self.correct_outputs = dataset.preprocess_sentences()
-        self.embeddings = gensim.models.Word2Vec(self.sentences, min_count=1, vector_size=10)
+        self.embeddings = gensim.models.Word2Vec(self.sentences, min_count=1, vector_size=30)
         self.num_classes = len(self.dataset.classes)
 
-        self.hidden1 = torch.nn.Linear(10, 100)
+        self.hidden1 = torch.nn.Linear(30, 100)
         self.hidden2 = torch.nn.Linear(100, self.num_classes)
         self.activation = torch.nn.ReLU()
 
@@ -95,6 +102,9 @@ class Dataset:
         self.context_size = context_size
         self.end_description_token = "<end>"
         self.unknown_word_token = "<unk>"
+
+        self.common_query_starts = ["Tell me more about", "Want to learn about", "I want to explore"]
+        self.common_response_starts = ["You should consider taking", "I would definitely recommend"]
         assert self.context_size < self.data_size
 
         self.dataset, self.sentences = self.build_dataset()
@@ -102,13 +112,13 @@ class Dataset:
 
     def build_dataset(self):
         dataset = []
-        common_query_starts = ["Tell me more about", "Want to learn about", "I want to explore"]
-        common_response_starts = ["You should consider taking", "I would definitely recommend"]
+        # common_query_starts = ["Tell me more about", "Want to learn about", "I want to explore"]
+        # common_response_starts = ["You should consider taking", "I would definitely recommend"]
 
-        num_epochs = 100
+        num_epochs = 50
         for _ in tqdm(range(num_epochs)):
-            query_start = random.choice(common_query_starts)
-            response_start = random.choice(common_response_starts)
+            query_start = random.choice(self.common_query_starts)
+            response_start = random.choice(self.common_response_starts)
 
             # random_subject = random.choice(self.data)
             # print(random_subject)
@@ -187,15 +197,30 @@ class Dataset:
         return data, correct_output
 
 
+def extract_information_from_user_arguments(arg):
+    result = []
+    subject = ""
+    for i in arg:
+        if i == " ":
+            result.append(subject)
+            subject = ""
+        else:
+            subject = subject + i
+    if subject != "":
+        result.append(subject)
+    return result
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process User Command Line Arguments")
     parser.add_argument("subjects")
     parser.add_argument("query")
     arguments = parser.parse_args()
 
-    user_subjects = arguments.subjects
+    user_subjects = extract_information_from_user_arguments(arguments.subjects)
+    user_query = extract_information_from_user_arguments(arguments.query)
 
-    sentence_data = Dataset(subjects=[user_subjects.strip()], context_size=8)
+    sentence_data = Dataset(subjects=user_subjects, context_size=8)
     # print(sentence_data.dataset)
     # print(model.dataset)
     # print(model.sentences)
@@ -203,7 +228,7 @@ if __name__ == "__main__":
 
     model = Model(sentence_data)
     # print(model.sentences)
-    print(model.num_classes)
-    main = Main(model)
-    print(main.class_to_number)
+    # print(model.num_classes)
+    main = Main(model, user_query)
+    # print(main.class_to_number)
 
