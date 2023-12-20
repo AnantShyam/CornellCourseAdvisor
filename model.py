@@ -10,7 +10,7 @@ class Model(torch.nn.Module):
         super().__init__()
         self.dataset = data
         self.sentences, self.correct_outputs = data.preprocess_sentences()
-        self.embeddings = gensim.models.Word2Vec(self.sentences, min_count=1, vector_size=30)
+        self.embeddings = gensim.models.Word2Vec(self.sentences, min_count=1, vector_size=150)
         self.num_classes = len(self.dataset.classes)
         self.training_data_words = self.dataset.vocabulary
 
@@ -19,8 +19,8 @@ class Model(torch.nn.Module):
             self.class_to_number[list(self.dataset.classes)[i]] = i
 
         self.loss_function = torch.nn.CrossEntropyLoss()
-        self.hidden1 = torch.nn.Linear(30, 100)
-        self.hidden2 = torch.nn.Linear(100, self.num_classes)
+        self.hidden1 = torch.nn.Linear(150, 1000)
+        self.hidden2 = torch.nn.Linear(1000, self.num_classes)
         self.activation = torch.nn.ReLU()
         self.optimizer = torch.optim.SGD(self.parameters(), lr=0.001)
 
@@ -40,7 +40,7 @@ class Model(torch.nn.Module):
         return prediction
 
     def train_model(self):
-        num_epochs = 50
+        num_epochs = 100
         for _ in tqdm(range(num_epochs)):
             self.train()
             num_iter = len(self.sentences)

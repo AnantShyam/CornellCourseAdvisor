@@ -6,4 +6,4 @@ python  main.py  "Put your subjects here"  "Put your query here"
 
 Insert the subjects you want the model to consider in the first argument as a string, and insert your query as the second argument as a string. 
 
-<img width="809" alt="Screen Shot 2023-12-18 at 12 40 17 AM" src="https://github.com/AnantShyam/CornellCourseAdvisor/assets/90667923/fe6927d0-341f-4bba-b696-df429b4c70e8">
+![](../../../../var/folders/nx/px697d7n0p19yl7yqjtqplnh0000gp/T/TemporaryItems/NSIRD_screencaptureui_3YHsQk/Screen Shot 2023-12-20 at 6.10.03 PM.png)
