@@ -1,11 +1,13 @@
+# Cornell Course Advisor
+
 A Machine Learning Model to tell you want course at Cornell University could be a good fit for you based on your interests!
 
 To run the model, clone this repository, and install the necessary packages, and run the following command:
 
 ```
-subjects = "" # fill in your subjects
-query = "" # fill in your query
-python  main.py  subjects  query
+subjects = ""   # fill in your subjects
+query = ""      # fill in your query
+python main.py subjects query
 ```
 
 Insert the subjects you want the model to consider in the first argument as a string, and insert your query as the second argument as a string. 
